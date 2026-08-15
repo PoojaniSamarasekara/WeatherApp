@@ -3,7 +3,6 @@ package com.example.weatherapp
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import retrofit2.Call
@@ -16,15 +15,14 @@ class MainActivity : AppCompatActivity() {
 
     private val BASE_URL = "https://api.openweathermap.org/"
 
-    // Do NOT put your real API key into GitHub.
-    // Replace this with a locally stored key later.
+    // API key is loaded from local.properties through BuildConfig
     private val API_KEY = BuildConfig.OPENWEATHER_API_KEY
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Get the UI components
+        // Connect to the UI
         val cityInput = findViewById<EditText>(R.id.etCity)
         val searchButton = findViewById<Button>(R.id.btnSearch)
 
@@ -37,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         // Create WeatherApi implementation
         val api = retrofit.create(WeatherApi::class.java)
 
-        // When Search Weather is clicked
+        // Search Weather button
         searchButton.setOnClickListener {
 
             // 1. Read city name
@@ -54,36 +52,48 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // 3. Construct and 4. Send GET request
+            // 3. Construct request
+            // 4. Send GET request
             api.getWeather(city, API_KEY).enqueue(
                 object : Callback<WeatherResponse> {
 
-                    // 5. Receive response
+                    // 5. Receive and process response
                     override fun onResponse(
                         call: Call<WeatherResponse>,
                         response: Response<WeatherResponse>
                     ) {
 
                         if (response.isSuccessful && response.body() != null) {
-                            val weatherResponse = response.body()!!
 
-                            findViewById<TextView>(R.id.tvCity).text = "City: ${weatherResponse.name}"
-                            findViewById<TextView>(R.id.tvTemperature).text = "Temperature: ${weatherResponse.main.temp} °C"
-                            findViewById<TextView>(R.id.tvCondition).text = "Condition: ${weatherResponse.weather.firstOrNull()?.description ?: "--"}"
-                            findViewById<TextView>(R.id.tvHumidity).text = "Humidity: ${weatherResponse.main.humidity} %"
-                            findViewById<TextView>(R.id.tvWindSpeed).text = "Wind Speed: ${weatherResponse.wind.speed} km/h"
+                            // Get the converted JSON response
+                            val weatherData = response.body()!!
 
+                            // Extract required values
+                            val cityName = weatherData.name
+                            val temperature = weatherData.main.temp
+                            val condition =
+                                weatherData.weather[0].description
+                            val humidity = weatherData.main.humidity
+                            val windSpeed = weatherData.wind.speed
+
+                            // Display extracted values temporarily
                             Toast.makeText(
                                 this@MainActivity,
-                                "Weather response received successfully",
-                                Toast.LENGTH_SHORT
+                                """
+                                City: $cityName
+                                Temperature: $temperature°C
+                                Condition: $condition
+                                Humidity: $humidity%
+                                Wind Speed: $windSpeed m/s
+                                """.trimIndent(),
+                                Toast.LENGTH_LONG
                             ).show()
 
                         } else {
 
                             Toast.makeText(
                                 this@MainActivity,
-                                "API request failed",
+                                "City not found",
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
