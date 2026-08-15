@@ -3,6 +3,7 @@ package com.example.weatherapp
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import retrofit2.Call
@@ -15,16 +16,23 @@ class MainActivity : AppCompatActivity() {
 
     private val BASE_URL = "https://api.openweathermap.org/"
 
-    // API key is loaded from local.properties through BuildConfig
+    // API key comes from local.properties through BuildConfig
     private val API_KEY = BuildConfig.OPENWEATHER_API_KEY
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Connect to the UI
+        // Input field and search button
         val cityInput = findViewById<EditText>(R.id.etCity)
         val searchButton = findViewById<Button>(R.id.btnSearch)
+
+        // Weather information TextViews
+        val cityText = findViewById<TextView>(R.id.tvCity)
+        val temperatureText = findViewById<TextView>(R.id.tvTemperature)
+        val conditionText = findViewById<TextView>(R.id.tvCondition)
+        val humidityText = findViewById<TextView>(R.id.tvHumidity)
+        val windText = findViewById<TextView>(R.id.tvWindSpeed)
 
         // Create Retrofit
         val retrofit = Retrofit.Builder()
@@ -32,16 +40,16 @@ class MainActivity : AppCompatActivity() {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-        // Create WeatherApi implementation
+        // Create WeatherApi
         val api = retrofit.create(WeatherApi::class.java)
 
         // Search Weather button
         searchButton.setOnClickListener {
 
-            // 1. Read city name
+            // Read city name
             val city = cityInput.text.toString().trim()
 
-            // 2. Validate input
+            // Validate input
             if (city.isEmpty()) {
                 Toast.makeText(
                     this,
@@ -52,12 +60,10 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // 3. Construct request
-            // 4. Send GET request
+            // Send API request
             api.getWeather(city, API_KEY).enqueue(
                 object : Callback<WeatherResponse> {
 
-                    // 5. Receive and process response
                     override fun onResponse(
                         call: Call<WeatherResponse>,
                         response: Response<WeatherResponse>
@@ -65,10 +71,10 @@ class MainActivity : AppCompatActivity() {
 
                         if (response.isSuccessful && response.body() != null) {
 
-                            // Get the converted JSON response
+                            // Get parsed response
                             val weatherData = response.body()!!
 
-                            // Extract required values
+                            // Extract data from API response
                             val cityName = weatherData.name
                             val temperature = weatherData.main.temp
                             val condition =
@@ -76,18 +82,16 @@ class MainActivity : AppCompatActivity() {
                             val humidity = weatherData.main.humidity
                             val windSpeed = weatherData.wind.speed
 
-                            // Display extracted values temporarily
-                            Toast.makeText(
-                                this@MainActivity,
-                                """
-                                City: $cityName
-                                Temperature: $temperature°C
-                                Condition: $condition
-                                Humidity: $humidity%
-                                Wind Speed: $windSpeed m/s
-                                """.trimIndent(),
-                                Toast.LENGTH_LONG
-                            ).show()
+                            // Display API data in the application
+                            cityText.text = "City: $cityName"
+                            temperatureText.text =
+                                "Temperature: ${temperature}°C"
+                            conditionText.text =
+                                "Condition: $condition"
+                            humidityText.text =
+                                "Humidity: $humidity%"
+                            windText.text =
+                                "Wind Speed: $windSpeed m/s"
 
                         } else {
 
