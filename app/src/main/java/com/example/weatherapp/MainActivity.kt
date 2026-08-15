@@ -72,15 +72,11 @@ class MainActivity : AppCompatActivity() {
                             val humidity = weatherData.main.humidity
                             val windSpeed = weatherData.wind.speed
 
-                            cityText.text = "City: $cityName"
-                            temperatureText.text =
-                                "Temperature: ${temperature}°C"
-                            conditionText.text =
-                                "Condition: $condition"
-                            humidityText.text =
-                                "Humidity: $humidity%"
-                            windText.text =
-                                "Wind Speed: $windSpeed m/s"
+                            cityText.text = cityName
+                            temperatureText.text = "${temperature}°C"
+                            conditionText.text = condition
+                            humidityText.text = "$humidity%"
+                            windText.text = "$windSpeed m/s"
 
                         } else {
 
